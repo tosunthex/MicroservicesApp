@@ -1,0 +1,74 @@
+version: '3.4'
+
+services:
+    catalogdb:
+        container_name: catalogdb
+        restart: always
+        volumes:
+            - ${WEBAPP_STORAGE_HOME}/site:/data/db
+            #- ./data:/data/db
+        ports:
+            - "27017:27017"
+
+    basketdb:
+        container_name: basketdb
+        restart: always        
+        ports:
+            - "6379:6379"
+
+    orderdb:
+        container_name: orderdb
+        ports:
+            - "1433:1433"
+        environment:
+            ACCEPT_EULA: "Y"    
+            SA_PASSWORD: "yourStrong(!)Password"            
+
+    rabbitmq:
+        container_name: rabbitmq
+        restart: always
+        ports:
+            - "15672:15672"
+
+    catalog.api:
+        container_name: catalogapi
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Development
+            - "CatalogDatabaseSettings:ConnectionString=mongodb://catalogdb:27017"
+        depends_on:
+            - catalogdb
+        volumes:
+            - ${HOME}/.microsoft/usersecrets/:/root/.microsoft/usersecrets
+            - ${HOME}/.aspnet/https:/root/.aspnet/https/
+        ports:
+            - "8000:80"
+
+    basket.api:
+        container_name: basketapi
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Development
+            - "ConnectionStrings:Redis=basketdb:6379"
+            - "EventBus:HostName=rabbitmq"
+        depends_on:
+            - basketdb
+            - rabbitmq
+        volumes:
+            - ${HOME}/.microsoft/usersecrets/:/root/.microsoft/usersecrets
+            - ${HOME}/.aspnet/https:/root/.aspnet/https/
+        ports:
+            - "8001:80"
+
+    ordering.api:
+        container_name: orderingapi
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Development
+            - "ConnectionStrings:OrderConnection=Server=orderdb;Database=OrderDb;User Id=sa;Password=yourStrong(!)Password"
+            - "EventBus:HostName=rabbitmq"do
+        depends_on:
+            - orderdb
+            - rabbitmq
+        volumes:
+            - ${HOME}/.microsoft/usersecrets/:/root/.microsoft/usersecrets
+            - ${HOME}/.aspnet/https:/root/.aspnet/https/
+        ports:
+            - "8002:80"
