@@ -63,7 +63,7 @@ services:
         environment:
             - ASPNETCORE_ENVIRONMENT=Development
             - "ConnectionStrings:OrderConnection=Server=orderdb;Database=OrderDb;User Id=sa;Password=yourStrong(!)Password"
-            - "EventBus:HostName=rabbitmq"do
+            - "EventBus:HostName=rabbitmq"
         depends_on:
             - orderdb
             - rabbitmq
@@ -72,3 +72,17 @@ services:
             - ${HOME}/.aspnet/https:/root/.aspnet/https/
         ports:
             - "8002:80"
+
+    ocelotapigateway:
+        container_name: ocelotapigateway
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Development
+        depends_on:
+            - catalog.api
+            - basket.api
+            - ordering.api
+        volumes:
+            - ${HOME}/.microsoft/usersecrets/:/root/.microsoft/usersecrets
+            - ${HOME}/.aspnet/https:/root/.aspnet/https/
+        ports:
+            - "7000:80"

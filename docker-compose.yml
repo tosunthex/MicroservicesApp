@@ -28,3 +28,8 @@ services:
         build:
             context: .
             dockerfile: src/Ordering/Ordering.API/Dockerfile
+    ocelotapigateway:
+        image: ${DOCKER_REGISTRY-}apigateway
+        build:
+            context: .
+            dockerfile: src/ApiGateway/OcelotAPIGateway/Dockerfile
